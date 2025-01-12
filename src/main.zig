@@ -1,5 +1,5 @@
 const std = @import("std");
-const day1z = @import("Days/day1.zig");
+const day1z = @import("Day1/day1.zig");
 
 pub fn main() !void {
     const Days = enum { day1, day2, day3 };
