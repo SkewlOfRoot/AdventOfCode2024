@@ -6,6 +6,10 @@ pub fn run() !void {
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
+    defer {
+        _ = gpa.detectLeaks();
+        _ = gpa.deinit();
+    }
 
     const lines = try utils.readLinesStreamFromFile("src/Day1/data");
     defer lines.deinit();
@@ -30,6 +34,11 @@ pub fn run() !void {
         try listB.append(secondNumber);
     }
 
+    try partOne(listA, listB);
+    try partTwo(listA, listB);
+}
+
+fn partOne(listA: std.ArrayList(i32), listB: std.ArrayList(i32)) !void {
     // Sort lists acending
     try sortList(listA);
     try sortList(listB);
@@ -41,7 +50,24 @@ pub fn run() !void {
         sum += distance;
     }
 
-    std.debug.print("Sum: {d}\n", .{sum});
+    std.debug.print("Sum part1: {d}\n", .{sum});
+}
+
+fn partTwo(listA: std.ArrayList(i32), listB: std.ArrayList(i32)) !void {
+    var sum: i32 = 0;
+    for (listA.items) |itemA| {
+        var mul: i32 = 0;
+
+        for (listB.items) |itemB| {
+            if (itemA == itemB) {
+                mul += itemB;
+            }
+        }
+
+        sum += mul;
+    }
+
+    std.debug.print("Sum part2: {d}\n", .{sum});
 }
 
 fn getFirstNumberFromPos(line: []const u8, pos: usize) !i32 {
