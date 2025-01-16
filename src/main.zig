@@ -1,15 +1,16 @@
 const std = @import("std");
 const day1z = @import("Day1/day1.zig");
+const day2z = @import("Day2/day2.zig");
 
 pub fn main() !void {
     const Days = enum { day1, day2, day3 };
-    const CurrentDay = union(Days) { day1: type, day2, day3 };
+    const CurrentDay = union(Days) { day1: type, day2: type, day3 };
 
-    const currentDay = CurrentDay{ .day1 = day1z };
+    const currentDay = CurrentDay{ .day2 = day2z };
 
     switch (currentDay) {
         .day1 => |val| try val.run(),
-        .day2 => {},
+        .day2 => |val| try val.run(),
         .day3 => {},
     }
 

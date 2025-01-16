@@ -11,8 +11,13 @@ pub fn run() !void {
         _ = gpa.deinit();
     }
 
-    const lines = try utils.readLinesStreamFromFile("src/Day1/data");
-    defer lines.deinit();
+    const lines: std.ArrayList([]const u8) = try utils.readLinesStreamFromFile(allocator, "src/Day1/data");
+    defer {
+        for (lines.items) |line| {
+            allocator.free(line);
+        }
+        lines.deinit();
+    }
 
     var listA = std.ArrayList(i32).init(allocator);
     defer listA.deinit();
@@ -21,7 +26,7 @@ pub fn run() !void {
     defer listB.deinit();
 
     for (lines.items) |line| {
-        std.debug.print("{s}\n", .{line});
+        std.debug.print("line: {s}\n", .{line});
 
         // Get first number
         const firstNumber = try getFirstNumberFromPos(line, 0);
@@ -34,14 +39,14 @@ pub fn run() !void {
         try listB.append(secondNumber);
     }
 
-    try partOne(listA, listB);
-    try partTwo(listA, listB);
+    try partOne(&listA, &listB);
+    try partTwo(&listA, &listB);
 }
 
-fn partOne(listA: std.ArrayList(i32), listB: std.ArrayList(i32)) !void {
+fn partOne(listA: *const std.ArrayList(i32), listB: *const std.ArrayList(i32)) !void {
     // Sort lists acending
-    try sortList(listA);
-    try sortList(listB);
+    try sortList(listA.*);
+    try sortList(listB.*);
 
     // Find number distances and calculate the sum
     var sum: u32 = 0;
@@ -53,7 +58,7 @@ fn partOne(listA: std.ArrayList(i32), listB: std.ArrayList(i32)) !void {
     std.debug.print("Sum part1: {d}\n", .{sum});
 }
 
-fn partTwo(listA: std.ArrayList(i32), listB: std.ArrayList(i32)) !void {
+fn partTwo(listA: *const std.ArrayList(i32), listB: *const std.ArrayList(i32)) !void {
     var sum: i32 = 0;
     for (listA.items) |itemA| {
         var mul: i32 = 0;

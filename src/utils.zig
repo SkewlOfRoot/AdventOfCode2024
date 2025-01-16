@@ -1,22 +1,22 @@
 const std = @import("std");
+const File = std.fs.File;
 
-pub fn readLinesStreamFromFile(fileName: []const u8) !std.ArrayList([]const u8) {
-    const allocator = std.heap.page_allocator;
-
+pub fn readLinesStreamFromFile(allocator: std.mem.Allocator, fileName: []const u8) !std.ArrayList([]const u8) {
     // Open file.
-    const file = try std.fs.cwd().openFile(fileName, .{});
+    const file = try std.fs.cwd().openFile(fileName, File.OpenFlags{ .mode = File.OpenMode.read_only });
     defer file.close();
 
-    var buf_reader = std.io.bufferedReader(file.reader());
-    var in_stream = buf_reader.reader();
-    var buf: [1024]u8 = undefined;
+    const stat = try file.stat();
+    const buffer = try file.readToEndAlloc(allocator, stat.size);
+    defer allocator.free(buffer);
 
     var lines: std.ArrayList([]const u8) = std.ArrayList([]const u8).init(allocator);
 
-    while (try in_stream.readUntilDelimiterOrEof(&buf, '\n')) |line| {
-        // Appending line directly will just append a pointer to the buffer. So if the slice is not copied the ArrayList will contain the same item again and again.
-        const line_copy = try allocator.dupe(u8, line);
-        try lines.append(line_copy);
+    var bla = std.mem.splitAny(u8, buffer, "\n");
+
+    while (bla.next()) |line| {
+        const copy = try allocator.dupe(u8, line);
+        try lines.append(copy);
     }
 
     return lines;
