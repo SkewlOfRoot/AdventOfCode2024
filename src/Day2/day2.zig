@@ -12,18 +12,44 @@ pub fn run(allocator: std.mem.Allocator) !void {
         lines.deinit();
     }
 
-    var safe_reports: u32 = 0;
+    var reports = std.ArrayList(std.ArrayList(i16)).init(allocator);
+    defer {
+        for (reports.items) |value| {
+            value.deinit();
+        }
+        reports.deinit();
+    }
+
     // Extract numbers from line.
     for (lines.items) |line| {
         const numbers = try extractNumbersFromLine(allocator, line);
-        defer numbers.deinit();
+        try reports.append(numbers);
+    }
 
-        if (isReportSafe(numbers)) {
+    try partOne(reports);
+    try partTwo(allocator, reports);
+}
+
+fn partOne(reports: std.ArrayList(std.ArrayList(i16))) !void {
+    var safe_reports: u32 = 0;
+    for (reports.items) |report| {
+        if (isReportSafe(report.items)) {
             safe_reports += 1;
         }
     }
 
     std.debug.print("Safe reports: {d}\n", .{safe_reports});
+}
+
+fn partTwo(allocator: std.mem.Allocator, reports: std.ArrayList(std.ArrayList(i16))) !void {
+    var safe_reports: u32 = 0;
+    for (reports.items) |report| {
+        if (try isReportSafeWithTolerance(allocator, report)) {
+            safe_reports += 1;
+        }
+    }
+
+    std.debug.print("Safe reports w. tolerance: {d}\n", .{safe_reports});
 }
 
 fn extractNumbersFromLine(allocator: std.mem.Allocator, line: []const u8) !std.ArrayList(i16) {
@@ -43,14 +69,15 @@ fn extractNumbersFromLine(allocator: std.mem.Allocator, line: []const u8) !std.A
     return numbers;
 }
 
-fn isReportSafe(numbers: std.ArrayList(i16)) bool {
+fn isReportSafe(numbers: []const i16) bool {
     var declination: i8 = 0;
-    for (0..numbers.items.len) |i| {
+    for (0..numbers.len) |i| {
         if (i == 0) {
             continue;
         }
-        const number = numbers.items[i];
-        const prev_number = numbers.items[i - 1];
+
+        const number = numbers[i];
+        const prev_number = numbers[i - 1];
 
         // Unsafe if numbers are equal.
         if (number == prev_number) {
@@ -74,4 +101,24 @@ fn isReportSafe(numbers: std.ArrayList(i16)) bool {
     }
 
     return true;
+}
+
+fn isReportSafeWithTolerance(allocator: std.mem.Allocator, numbers: std.ArrayList(i16)) !bool {
+    for (0..numbers.items.len) |i| {
+        var number_selection = std.ArrayList(i16).init(allocator);
+        defer number_selection.deinit();
+
+        for (0..numbers.items.len) |j| {
+            if (i == j) {
+                continue;
+            }
+            try number_selection.append(numbers.items[j]);
+        }
+
+        if (isReportSafe(number_selection.items)) {
+            return true;
+        }
+    }
+
+    return false;
 }
