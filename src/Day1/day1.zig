@@ -1,15 +1,15 @@
 const std = @import("std");
 const utils = @import("../utils.zig");
 
-pub fn run() !void {
+pub fn run(allocator: std.mem.Allocator) !void {
     std.debug.print("Running day 1\n", .{});
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
-    defer {
-        _ = gpa.detectLeaks();
-        _ = gpa.deinit();
-    }
+    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    // const allocator = gpa.allocator();
+    // defer {
+    //     _ = gpa.detectLeaks();
+    //     _ = gpa.deinit();
+    // }
 
     const lines: std.ArrayList([]const u8) = try utils.readLinesStreamFromFile(allocator, "src/Day1/data");
     defer {
