@@ -4,13 +4,6 @@ const utils = @import("../utils.zig");
 pub fn run(allocator: std.mem.Allocator) !void {
     std.debug.print("Running day 1\n", .{});
 
-    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    // const allocator = gpa.allocator();
-    // defer {
-    //     _ = gpa.detectLeaks();
-    //     _ = gpa.deinit();
-    // }
-
     const lines: std.ArrayList([]const u8) = try utils.readLinesStreamFromFile(allocator, "src/Day1/data");
     defer {
         for (lines.items) |line| {
@@ -19,51 +12,51 @@ pub fn run(allocator: std.mem.Allocator) !void {
         lines.deinit();
     }
 
-    var listA = std.ArrayList(i32).init(allocator);
-    defer listA.deinit();
+    var list_a = std.ArrayList(i32).init(allocator);
+    defer list_a.deinit();
 
-    var listB = std.ArrayList(i32).init(allocator);
-    defer listB.deinit();
+    var list_b = std.ArrayList(i32).init(allocator);
+    defer list_b.deinit();
 
     for (lines.items) |line| {
         std.debug.print("line: {s}\n", .{line});
 
         // Get first number
         const firstNumber = try getFirstNumberFromPos(line, 0);
-        try listA.append(firstNumber);
+        try list_a.append(firstNumber);
 
         // Get second number
         var buff: [10]u8 = undefined;
         const numberStr = try std.fmt.bufPrint(&buff, "{}", .{firstNumber});
         const secondNumber = try getFirstNumberFromPos(line, numberStr.len + 3);
-        try listB.append(secondNumber);
+        try list_b.append(secondNumber);
     }
 
-    try partOne(&listA, &listB);
-    try partTwo(&listA, &listB);
+    try partOne(&list_a, &list_b);
+    try partTwo(&list_a, &list_b);
 }
 
-fn partOne(listA: *const std.ArrayList(i32), listB: *const std.ArrayList(i32)) !void {
+fn partOne(list_a: *const std.ArrayList(i32), list_b: *const std.ArrayList(i32)) !void {
     // Sort lists acending
-    try sortList(listA.*);
-    try sortList(listB.*);
+    try sortList(list_a.*);
+    try sortList(list_b.*);
 
     // Find number distances and calculate the sum
     var sum: u32 = 0;
-    for (0..listA.items.len) |i| {
-        const distance: u32 = @abs(listA.items[i] - listB.items[i]);
+    for (0..list_a.items.len) |i| {
+        const distance: u32 = @abs(list_a.items[i] - list_b.items[i]);
         sum += distance;
     }
 
     std.debug.print("Sum part1: {d}\n", .{sum});
 }
 
-fn partTwo(listA: *const std.ArrayList(i32), listB: *const std.ArrayList(i32)) !void {
+fn partTwo(list_a: *const std.ArrayList(i32), list_b: *const std.ArrayList(i32)) !void {
     var sum: i32 = 0;
-    for (listA.items) |itemA| {
+    for (list_a.items) |itemA| {
         var mul: i32 = 0;
 
-        for (listB.items) |itemB| {
+        for (list_b.items) |itemB| {
             if (itemA == itemB) {
                 mul += itemB;
             }
