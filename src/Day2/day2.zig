@@ -4,7 +4,7 @@ const utils = @import("../utils.zig");
 pub fn run(allocator: std.mem.Allocator) !void {
     std.debug.print("Running day 2\n", .{});
 
-    const lines = try utils.readLinesStreamFromFile(allocator, "src/Day2/data");
+    const lines = try utils.readFileContentAsLines(allocator, "src/Day2/data");
     defer {
         for (lines.items) |line| {
             allocator.free(line);
