@@ -7,11 +7,6 @@ pub fn run(allocator: std.mem.Allocator) !void {
     const content = try utils.readFileContent(allocator, "src/Day3/data");
     defer allocator.free(content);
 
-    try partOne(allocator, content);
-    try partTwo(allocator, content);
-}
-
-fn partOne(allocator: std.mem.Allocator, content: []const u8) !void {
     const list = try findMuls(allocator, content);
     defer {
         for (list.items) |item| {
@@ -20,33 +15,21 @@ fn partOne(allocator: std.mem.Allocator, content: []const u8) !void {
         list.deinit();
     }
 
-    var sum: u32 = 0;
+    var sum_part1: u32 = 0;
+    var sum_part2: u32 = 0;
+
     for (list.items) |item| {
         const product = try multiply(allocator, item.mul);
-        sum += product;
-    }
 
-    std.debug.print("Sum part 1: {d}\n", .{sum});
-}
+        sum_part1 += product;
 
-fn partTwo(allocator: std.mem.Allocator, content: []const u8) !void {
-    const list = try findMuls(allocator, content);
-    defer {
-        for (list.items) |item| {
-            allocator.free(item.mul);
-        }
-        list.deinit();
-    }
-
-    var sum: u32 = 0;
-    for (list.items) |item| {
         if (item.improve) {
-            const product = try multiply(allocator, item.mul);
-            sum += product;
+            sum_part2 += product;
         }
     }
 
-    std.debug.print("Sum part 2: {d}\n", .{sum});
+    std.debug.print("Sum part 1: {d}\n", .{sum_part1});
+    std.debug.print("Sum part 2: {d}\n", .{sum_part2});
 }
 
 /// Scans through the input content and extracts any valid 'mul(n,n)'. Also detects any conditional 'do' and 'don't' statements which will make output more precise.
