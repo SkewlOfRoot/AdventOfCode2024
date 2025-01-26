@@ -1,10 +1,12 @@
 const std = @import("std");
+const print = std.debug.print;
 const utils = @import("../utils.zig");
 
 const pattern_f = "XMAS";
+const pattern_m = "MAS";
 
 pub fn run(allocator: std.mem.Allocator) !void {
-    std.debug.print("Running day 4\n", .{});
+    print("Running day 4\n", .{});
 
     const lines = try utils.readFileContentAsLines(allocator, "src/Day4/data");
     defer {
@@ -14,6 +16,11 @@ pub fn run(allocator: std.mem.Allocator) !void {
         lines.deinit();
     }
 
+    try partOne(allocator, lines);
+    try partTwo(lines);
+}
+
+fn partOne(allocator: std.mem.Allocator, lines: std.ArrayList([]const u8)) !void {
     var sum: u32 = 0;
 
     for (lines.items, 0..) |line, i| {
@@ -27,7 +34,24 @@ pub fn run(allocator: std.mem.Allocator) !void {
         }
     }
 
-    std.debug.print("Sum part 1: {d}\n", .{sum});
+    print("Sum part 1: {d}\n", .{sum});
+}
+
+fn partTwo(lines: std.ArrayList([]const u8)) !void {
+    var sum: u32 = 0;
+
+    for (lines.items, 0..) |line, i| {
+        var j: usize = 0;
+        while (j < line.len) : (j += 1) {
+            const c = line[j];
+
+            if (c == 'A') {
+                sum += scanForMasX(j, i, lines.items);
+            }
+        }
+    }
+
+    print("Sum part 2: {d}\n", .{sum});
 }
 
 fn countXmas(allocator: std.mem.Allocator, x: usize, y: usize, rows: [][]const u8) !u32 {
@@ -156,19 +180,34 @@ fn scanDiagonally(x: usize, y: usize, rows: [][]const u8) u32 {
     return sum;
 }
 
+fn scanForMasX(x: usize, y: usize, rows: [][]const u8) u32 {
+    var sum: u32 = 0;
+
+    // Scan for MAS X
+    if (x >= 1 and y >= 1 and x <= rows[y].len - 3 and y <= rows.len - 2) {
+        const a1 = rows[y - 1][x - 1];
+        const a2 = rows[y + 1][x + 1];
+
+        const b1 = rows[y - 1][x + 1];
+        const b2 = rows[y + 1][x - 1];
+
+        if (((a1 == 'M' and a2 == 'S') or (a1 == 'S' and a2 == 'M')) and ((b1 == 'M' and b2 == 'S') or (b1 == 'S' and b2 == 'M'))) {
+            sum += 1;
+        }
+    }
+
+    return sum;
+}
+
 inline fn cast(T: type, v: anytype) T {
     return @intCast(v);
 }
 
 test "scanHorizontally" {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
-    try std.testing.expectEqual(2, try scanHorizontally(allocator, 3, "SAMXMASMAS"));
-    try std.testing.expectEqual(1, try scanHorizontally(allocator, 6, "AMXSAMXMA"));
-    try std.testing.expectEqual(2, try scanHorizontally(allocator, 6, "AMXSAMXMAS"));
-    try std.testing.expectEqual(1, try scanHorizontally(allocator, 3, "AMXMASXMAS"));
+    try std.testing.expectEqual(2, try scanHorizontally(3, "SAMXMASMAS"));
+    try std.testing.expectEqual(1, try scanHorizontally(6, "AMXSAMXMA"));
+    try std.testing.expectEqual(2, try scanHorizontally(6, "AMXSAMXMAS"));
+    try std.testing.expectEqual(1, try scanHorizontally(2, "AMXMASXMAS"));
 }
 
 test "scanVertically" {
@@ -210,4 +249,24 @@ test "scanDiagonally" {
 
     try std.testing.expectEqual(4, scanDiagonally(3, 3, d));
     try std.testing.expectEqual(1, scanDiagonally(5, 4, d));
+}
+
+test "scanForMasX" {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var d = try allocator.alloc([]const u8, 7);
+    defer allocator.free(d);
+    d[0] = ".M.S......";
+    d[1] = "..A..MSMS.";
+    d[2] = "SMMS.MAS.M";
+    d[3] = ".AA.ASMSA.";
+    d[4] = "SMMS.X.S.M";
+
+    try std.testing.expectEqual(1, scanForMasX(2, 1, d));
+    try std.testing.expectEqual(1, scanForMasX(6, 2, d));
+    try std.testing.expectEqual(1, scanForMasX(8, 3, d));
+    try std.testing.expectEqual(0, scanForMasX(4, 3, d));
+    try std.testing.expectEqual(1, scanForMasX(1, 3, d));
 }
